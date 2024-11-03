@@ -7,7 +7,7 @@
 #include "threads/interrupt.h"
 #include "threads/synch.h"
 #include "threads/thread.h"
-  
+
 /* See [8254] for hardware details of the 8254 timer chip. */
 
 #if TIMER_FREQ < 19
@@ -24,6 +24,9 @@ static int64_t ticks;
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
 
+/* 대기 중인 스레드 리스트 */
+static struct list sleeping_threads;  ## 추가: 대기 중인 스레드 리스트
+
 static intr_handler_func timer_interrupt;
 static bool too_many_loops (unsigned loops);
 static void busy_wait (int64_t loops);
@@ -37,6 +40,7 @@ timer_init (void)
 {
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
+  list_init(&sleeping_threads); // 대기 중인 스레드 리스트 초기화 ## 추가
 }
 
 /* Calibrates loops_per_tick, used to implement brief delays. */
@@ -84,20 +88,34 @@ timer_elapsed (int64_t then)
   return timer_ticks () - then;
 }
 
-/* Sleeps for approximately TICKS timer ticks.  Interrupts must
-   be turned on. */
+/* Sleeps for approximately TICKS timer ticks.  
+   Interrupts must be turned on. */
 void
 timer_sleep (int64_t ticks) 
 {
-  int64_t start = timer_ticks ();
-
-  ASSERT (intr_get_level () == INTR_ON);
-  while (timer_elapsed (start) < ticks) 
-    thread_yield ();
+  int64_t start = timer_ticks();
+  
+  ASSERT (intr_get_level() == INTR_ON);
+  if (ticks > 0)
+    {
+      // 현재 스레드를 대기 큐에 추가 ## 수정
+      thread_sleep(ticks);
+    }
 }
 
-/* Sleeps for approximately MS milliseconds.  Interrupts must be
-   turned on. */
+/* 새로운 대기 함수 정의 ## 추가 */
+void
+thread_sleep(int64_t ticks)
+{
+  // 현재 스레드에 대한 대기 정보를 저장 ## 추가
+  struct thread *current = thread_current();
+  current->wake_time = ticks + timer_ticks(); // 대기 시간 설정 ## 수정
+  list_push_back(&sleeping_threads, &current->elem); // 대기 큐에 추가 ## 수정
+  thread_block(); // 스레드 블록 ## 수정
+}
+
+/* Sleeps for approximately MS milliseconds.  Interrupts must
+   be turned on. */
 void
 timer_msleep (int64_t ms) 
 {
@@ -152,7 +170,7 @@ timer_udelay (int64_t us)
    Busy waiting wastes CPU cycles, and busy waiting with
    interrupts off for the interval between timer ticks or longer
    will cause timer ticks to be lost.  Thus, use timer_nsleep()
-   instead if interrupts are enabled.*/
+   instead if interrupts are enabled. */
 void
 timer_ndelay (int64_t ns) 
 {
@@ -165,13 +183,29 @@ timer_print_stats (void)
 {
   printf ("Timer: %"PRId64" ticks\n", timer_ticks ());
 }
-
+
 /* Timer interrupt handler. */
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
-  thread_tick ();
+  thread_tick();
+  
+  // 대기 큐의 스레드 확인 및 깨어나게 하기 ## 수정
+  struct list_elem *e;
+  for (e = list_begin(&sleeping_threads); e != list_end(&sleeping_threads); )
+    {
+      struct thread *t = list_entry(e, struct thread, elem);
+      if (t->wake_time <= ticks)
+        {
+          e = list_remove(e); // 깨어날 스레드 제거 ## 수정
+          thread_unblock(t); // 스레드 활성화 ## 수정
+        }
+      else
+        {
+          e = list_next(e); // 다음 스레드로 이동
+        }
+    }
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
