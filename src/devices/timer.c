@@ -25,7 +25,7 @@ static int64_t ticks;
 static unsigned loops_per_tick;
 
 /* 대기 중인 스레드 리스트 */
-static struct list sleeping_threads;  ## 추가: 대기 중인 스레드 리스트
+static struct list sleeping_threads;  // 추가: 대기 중인 스레드 리스트
 
 static intr_handler_func timer_interrupt;
 static bool too_many_loops (unsigned loops);
@@ -40,7 +40,7 @@ timer_init (void)
 {
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
-  list_init(&sleeping_threads); // 대기 중인 스레드 리스트 초기화 ## 추가
+  list_init(&sleeping_threads); // 대기 중인 스레드 리스트 초기화 // 추가
 }
 
 /* Calibrates loops_per_tick, used to implement brief delays. */
@@ -98,20 +98,20 @@ timer_sleep (int64_t ticks)
   ASSERT (intr_get_level() == INTR_ON);
   if (ticks > 0)
     {
-      // 현재 스레드를 대기 큐에 추가 ## 수정
+      // 현재 스레드를 대기 큐에 추가 // 수정
       thread_sleep(ticks);
     }
 }
 
-/* 새로운 대기 함수 정의 ## 추가 */
+/* 새로운 대기 함수 정의 // 추가 */
 void
 thread_sleep(int64_t ticks)
 {
-  // 현재 스레드에 대한 대기 정보를 저장 ## 추가
+  // 현재 스레드에 대한 대기 정보를 저장 // 추가
   struct thread *current = thread_current();
-  current->wake_time = ticks + timer_ticks(); // 대기 시간 설정 ## 수정
-  list_push_back(&sleeping_threads, &current->elem); // 대기 큐에 추가 ## 수정
-  thread_block(); // 스레드 블록 ## 수정
+  current->wake_time = ticks + timer_ticks(); // 대기 시간 설정 // 수정
+  list_push_back(&sleeping_threads, &current->elem); // 대기 큐에 추가 // 수정
+  thread_block(); // 스레드 블록 // 수정
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must
@@ -191,15 +191,15 @@ timer_interrupt (struct intr_frame *args UNUSED)
   ticks++;
   thread_tick();
   
-  // 대기 큐의 스레드 확인 및 깨어나게 하기 ## 수정
+  // 대기 큐의 스레드 확인 및 깨어나게 하기 // 수정
   struct list_elem *e;
   for (e = list_begin(&sleeping_threads); e != list_end(&sleeping_threads); )
     {
       struct thread *t = list_entry(e, struct thread, elem);
       if (t->wake_time <= ticks)
         {
-          e = list_remove(e); // 깨어날 스레드 제거 ## 수정
-          thread_unblock(t); // 스레드 활성화 ## 수정
+          e = list_remove(e); // 깨어날 스레드 제거 // 수정
+          thread_unblock(t); // 스레드 활성화 // 수정
         }
       else
         {
