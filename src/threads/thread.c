@@ -451,13 +451,6 @@ donate_priority(void) {
 }
 
 
-bool
-thread_compare_donate_priority (const struct list_elem *l, const struct list_elem *s, void *aux UNUSED)
-{
-   return list_entry (l, struct thread, donation_elem)->priority
-		 > list_entry (s, struct thread, donation_elem)->priority;
-}
-
 void
 donate_priority(void)
 {
