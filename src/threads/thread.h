@@ -92,7 +92,10 @@ struct thread
     int64_t wakeup;                /* 깨어나야 할 ticks 값 */
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-
+    int init_priority; /* 스레드가 우선순위를 양도 받았다가 다시 반납할 때 원래의 우선순위를 복원할 수 있도록 우선순위값을 저장하는 변수*/
+    struct lock *wait_on_lock;   /* 스레드가 현재 얻기위해 기다리고 있는 lock으로 스레드는 이 lock이 release되기를 기다린다*/
+    struct list donations;     /* 자신에게 priority를 나누어준 스레드들의 리스트 */
+    struct list_elem donation_elem;   /* 이 리스트를 관리하기 위한 요소로 thread 구조체의 elem과 구분하여 사용 -p */
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
