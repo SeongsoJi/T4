@@ -344,6 +344,40 @@ thread_current (void)
   return t;
 }
 
+
+void
+remove_with_lock (struct lock *lock)
+{
+	struct list_elem *e;
+	struct thread *cur = thread_current ();
+	for (e = list_begin (&cur->donations); e != list_end (&cur->donations); e = list_next (e)){
+		struct thread *t = list_entry (e, struct thread, donation_elem);
+		if (t->wait_on_lock == lock)
+			 list_remove (&t->donation_elem);
+	}
+}
+
+void
+refresh_priority (void)
+{
+  struct thread *cur = thread_current ();
+
+  cur->priority = cur->init_priority;
+
+  if (!list_empty (&cur->donations)) {
+	list_sort (&cur->donations, thread_compare_donate_priority, 0);
+
+	struct thread *front = list_entry (list_front (&cur->donations), struct thread, donation_elem);
+	if (front->priority > cur->priority)
+		cur->priority = front->priority;
+  }
+}
+		
+		
+
+
+	
+
 /* Returns the running thread's tid. */
 tid_t
 thread_tid (void) 
