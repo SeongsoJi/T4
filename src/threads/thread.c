@@ -258,10 +258,16 @@ thread_create (const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock (t);
+   thread_test_preemption();
 
   return tid;
 }
-
+void
+thread_set_priority(int new_priority)
+{
+    thread_current ()->priority = new_priority;
+  thread_test_preemption ();
+}
 /* Puts the current thread to sleep.  It will not be scheduled
    again until awoken by thread_unblock().
 
@@ -295,9 +301,16 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_push_back (&ready_list, &t->elem);
+  list_insert_ordered (&ready_list, &t->elem, thread_compare_priority, 0);
   t->status = THREAD_READY;
   intr_set_level (old_level);
+}
+
+bool
+thread_compare_priority (struct list_emem *l, struct list_elem*s, void*aux UNUSED)
+{
+   return list_entry(l, struct thread, elem) ->priority
+      > list_entry (s, struct thread, elem) -> priority
 }
 
 /* Returns the name of the running thread. */
@@ -315,7 +328,7 @@ thread_current (void)
 {
   struct thread *t = running_thread ();
   
-  /* Make sure T is really a thread.
+  /* Make sure T is really a tthreadhread.
      If either of these assertions fire, then your thread may
      have overflowed its stack.  Each thread has less than 4 kB
      of stack, so a few big automatic arrays or moderate
@@ -366,10 +379,18 @@ thread_yield (void)
 
   old_level = intr_disable ();
   if (cur != idle_thread) 
-    list_push_back (&ready_list, &cur->elem);
+    list_insert_ordered (&ready_list, &cur->elem, thread_compare_priority, 0);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
+}
+void
+thread_test_preemption(void)
+{
+   if (!list_empty (&ready_list) && 
+    thread_current ()->priority < 
+    list_entry (list_front (&ready_list), struct thread, elem)->priority)
+        thread_yield ();
 }
 
 /* Invoke function 'func' on all threads, passing along 'aux'.
