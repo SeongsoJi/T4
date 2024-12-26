@@ -412,6 +412,29 @@ donate_priority (void)
   }
 }
 
+bool
+thread_compare_donate_priority (const struct list_elem *l, const struct list_elem *s, void *aux UNUSED)
+{
+   return list_entry (l, struct thread, donation_elem)->priority
+		 > list_entry (s, struct thread, donation_elem)->priority;
+}
+
+void
+donate_priority(void)
+{
+   int depth;
+   struct thread *cur = thread_current ();
+
+   for (depth = 0; depth < 8; depth++){
+      if (!cur->wait_on_lock) break;
+         struct thread *holder = cur->wait_on_lock->holder;
+         holder->priority = cur->priority;
+         cur = holder;
+   }
+}
+
+
+
 /* Invoke function 'func' on all threads, passing along 'aux'.
    This function must be called with interrupts off. */
 void
