@@ -312,8 +312,7 @@ thread_unblock (struct thread *t)
   intr_set_level (old_level);
 }
 
-bool
-thread_compare_priority (struct list_emem *l, struct list_elem*s, void*aux UNUSED)
+bool thread_compare_priority (struct list_emem *l, struct list_elem*s, void*aux UNUSED);
 {
    return list_entry(l, struct thread, elem) ->priority
       > list_entry (s, struct thread, elem) -> priority
