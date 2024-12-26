@@ -64,11 +64,12 @@ static void kernel_thread (thread_func *, void *aux);
 static void idle (void *aux UNUSED);
 static struct thread *running_thread (void);
 static struct thread *next_thread_to_run (void);
-static void init_thread (struct thread *, const char *name, int priority);{
-   t->init_priority = priority;
-   t->wait_on_lock = NULL;
-   list_init (&t->donations);
+static void init_thread (struct thread *t, const char *name, int priority) {
+    t->init_priority = priority;
+    t->wait_on_lock = NULL;
+    list_init (&t->donations);
 }
+
 static bool is_thread (struct thread *) UNUSED;
 static void *alloc_frame (struct thread *, size_t size);
 static void schedule (void);
