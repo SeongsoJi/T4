@@ -271,6 +271,8 @@ void
 thread_set_priority(int new_priority)
 {
     thread_current ()->priority = new_priority;
+
+  refresh_priority ()
   thread_test_preemption ();
 }
 /* Puts the current thread to sleep.  It will not be scheduled
