@@ -64,8 +64,7 @@ static void kernel_thread (thread_func *, void *aux);
 static void idle (void *aux UNUSED);
 static struct thread *running_thread (void);
 static struct thread *next_thread_to_run (void);
-static void init_thread (struct thread *, const char *name, int priority);
-{
+static void init_thread (struct thread *, const char *name, int priority);{
    t->init_priority = priority;
    t->wait_on_lock = NULL;
    list_init (&t->donations);
@@ -272,7 +271,7 @@ thread_set_priority(int new_priority)
 {
     thread_current ()->priority = new_priority;
 
-  refresh_priority ()
+  refresh_priority ();
   thread_test_preemption ();
 }
 /* Puts the current thread to sleep.  It will not be scheduled
