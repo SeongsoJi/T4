@@ -267,14 +267,13 @@ thread_create (const char *name, int priority,
 
   return tid;
 }
-void
-thread_set_priority(int new_priority)
-{
-    thread_current ()->priority = new_priority;
-
-  refresh_priority ();
-  thread_test_preemption ();
+void 
+thread_set_priority (int new_priority) {
+    thread_current()->priority = new_priority;
+    refresh_priority();
+    thread_test_preemption();
 }
+
 /* Puts the current thread to sleep.  It will not be scheduled
    again until awoken by thread_unblock().
 
@@ -313,7 +312,7 @@ thread_unblock (struct thread *t)
   intr_set_level (old_level);
 }
 
-bool thread_compare_priority (struct list_emem *l, struct list_elem*s, void*aux UNUSED);
+bool thread_compare_priority (const struct list_elem *l, const struct list_elem *s, void *aux UNUSED);
 {
    return list_entry(l, struct thread, elem) ->priority
       > list_entry (s, struct thread, elem) -> priority
@@ -434,18 +433,18 @@ thread_test_preemption(void)
 }
 
 void
-donate_priority (void)
-{
-  int depth;
-  struct thread *cur = thread_current ();
+donate_priority(void) {
+    int depth;
+    struct thread *cur = thread_current();
 
-  for (depth = 0; depth < 8; depth++){
-    if (!cur->wait_on_lock) break;
-      struct thread *holder = cur->wait_on_lock->holder;
-      holder->priority = cur->priority;
-      cur = holder;
-  }
+    for (depth = 0; depth < 8; depth++) {
+        if (!cur->wait_on_lock) break;
+        struct thread *holder = cur->wait_on_lock->holder;
+        holder->priority = cur->priority;
+        cur = holder;
+    }
 }
+
 
 bool
 thread_compare_donate_priority (const struct list_elem *l, const struct list_elem *s, void *aux UNUSED)
