@@ -581,9 +581,8 @@ is_thread (struct thread *t)
 
 /* Does basic initialization of T as a blocked thread named
    NAME. */
-static void 
-init_thread (struct thread *t, const char *name, int priority) 
-{
+// 첫 번째 정의에서 static 유지
+static void init_thread(struct thread *t, const char *name, int priority) {
     enum intr_level old_level;
 
     ASSERT(t != NULL);
@@ -601,6 +600,7 @@ init_thread (struct thread *t, const char *name, int priority)
     list_push_back(&all_list, &t->allelem);
     intr_set_level(old_level);
 }
+
 
 
 
