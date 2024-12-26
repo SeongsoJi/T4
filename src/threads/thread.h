@@ -148,7 +148,14 @@ void thread_awake(int64_t ticks);
 #endif /* threads/thread.h */
 bool thread_compare_priority(const struct list_elem *a, const struct list_elem *b, void *aux);
 
-void update_next_tick_to_awake(int64_t ticks);
+/*void update_next_tick_to_awake(int64_t ticks);
 int64_t get_next_tick_to_awake(void);
 void thread_test_preemption(void);
+void refresh_priority(void); */
+
+void donate_priority(void);
 void refresh_priority(void);
+void remove_with_lock(struct lock *lock);
+bool thread_compare_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
+bool thread_compare_donate_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
+
