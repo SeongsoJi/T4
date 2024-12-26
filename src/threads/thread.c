@@ -370,11 +370,6 @@ refresh_priority (void)
   }
 }
 
-bool thread_compare_priority (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED) {
-    return list_entry(a, struct thread, elem)->priority > 
-           list_entry(b, struct thread, elem)->priority;
-}
-
 bool thread_compare_donate_priority (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED) {
     return list_entry(a, struct thread, donation_elem)->priority > 
            list_entry(b, struct thread, donation_elem)->priority;
