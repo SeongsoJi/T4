@@ -88,6 +88,7 @@ static int64_t next_tick_to_awake;
 void
 thread_init (void) 
 {
+  init_thread(initial_thread, "main", PRI_DEFAULT);
   ASSERT (intr_get_level () == INTR_OFF);
 
   lock_init (&tid_lock);
