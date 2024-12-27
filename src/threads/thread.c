@@ -1,3 +1,4 @@
+
 #include "threads/thread.h"
 #include <debug.h>
 #include <stddef.h>
@@ -18,7 +19,11 @@
 /* Random value for struct thread's `magic' member.
    Used to detect stack overflow.  See the big comment at the top
    of thread.h for details. */
-#define THREAD_MAGIC 0xcd6abf4b
+#define THREAD_MAGIC 0xcd6abf4b 
+/* 프로그램에서 구조체가 잘못된 메모리를 가리키거나 초기화되지 않은 상태로 사용되는 실수를 방지!(is_thread 함수에서 사용됨)
+구조체가 잘못된 메모리를 가리킨다는 것? 포인터가 NULL인데도 불구하고(아무런 메모리를 가리키지 않았는데) 사용하려고 하면 문제가 됨
+동적 할당된 메모리를 해제한 후에도 포인터를 사용하면 문제가 발생
+구조체가 초기화되지 않은 상태로 이용한다는것?  구조체 변수를 선언했지만, 멤버 변수를 초기화하지 않고 사용하려 할 때 발생하는 문제 */
 
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
@@ -220,9 +225,52 @@ thread_print_stats (void)
    The code provided sets the new thread's `priority' member to
    PRIORITY, but no actual priority scheduling is implemented.
    Priority scheduling is the goal of Problem 1-3. */
+//tid_t
+//thread_create (const char *name, int priority,
+//               thread_func *function, void *aux)
+//{
+//  struct thread *t;
+//  struct kernel_thread_frame *kf;
+//  struct switch_entry_frame *ef;
+//  struct switch_threads_frame *sf;
+//  tid_t tid;
+
+//  ASSERT (function != NULL);
+
+  /* Allocate thread. */
+//  t = palloc_get_page (PAL_ZERO);
+//  if (t == NULL)
+//    return TID_ERROR;
+
+  /* Initialize thread. */
+//  init_thread (t, name, priority);
+//  tid = t->tid = allocate_tid ();
+
+  /* Stack frame for kernel_thread(). */
+//  kf = alloc_frame (t, sizeof *kf);
+//  kf->eip = NULL;
+//  kf->function = function;
+//  kf->aux = aux;
+
+  /* Stack frame for switch_entry(). */
+//  ef = alloc_frame (t, sizeof *ef);
+//  ef->eip = (void (*) (void)) kernel_thread;
+
+  /* Stack frame for switch_threads(). */
+//  sf = alloc_frame (t, sizeof *sf);
+//  sf->eip = switch_entry;
+//  sf->ebp = 0;
+
+  /* Add to run queue. */
+//  thread_unblock (t);
+//  thread_test_preemption();
+
+//  return tid;
+//}
+
 tid_t
 thread_create (const char *name, int priority,
-               thread_func *function, void *aux) 
+               thread_func *function, void *aux)
 {
   struct thread *t;
   struct kernel_thread_frame *kf;
@@ -230,16 +278,24 @@ thread_create (const char *name, int priority,
   struct switch_threads_frame *sf;
   tid_t tid;
 
+  printf("thread_create: Creating thread '%s' with priority %d.\n", name, priority);
+
   ASSERT (function != NULL);
 
   /* Allocate thread. */
   t = palloc_get_page (PAL_ZERO);
-  if (t == NULL)
+  if (t == NULL) {
+    printf("thread_create: Memory allocation failed for thread '%s'.\n", name);
     return TID_ERROR;
+  }
 
   /* Initialize thread. */
+  ASSERT(t != NULL);
   init_thread (t, name, priority);
-  tid = t->tid = allocate_tid ();
+  printf("thread_create: Thread '%s' initialized successfully.\n", name);
+
+  tid = t->tid = allocate_tid();
+  printf("thread_create: Assigned TID %d to thread '%s'.\n", tid, name);
 
   /* Stack frame for kernel_thread(). */
   kf = alloc_frame (t, sizeof *kf);
@@ -258,14 +314,18 @@ thread_create (const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock (t);
-   thread_test_preemption();
+  printf("thread_create: Thread '%s' added to run queue.\n", name);
+
+  thread_test_preemption();
+  printf("thread_create: Preemption test completed for thread '%s'.\n", name);
 
   return tid;
 }
+
 void 
 thread_set_priority (int new_priority) {
     thread_current()->priority = new_priority;
-    refresh_priority();
+   // refresh_priority(); ??
     thread_test_preemption();
 }
 
@@ -302,7 +362,7 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_insert_ordered (&ready_list, &t->elem, thread_compare_priority, 0);
+  list_insert_ordered (&ready_list, &t->elem, thread_compare_priority, 0); //list_push_back을 바꾼 부분!
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
@@ -421,8 +481,8 @@ thread_yield (void)
   ASSERT (!intr_context ());
 
   old_level = intr_disable ();
-  if (cur != idle_thread) 
-    list_insert_ordered (&ready_list, &cur->elem, thread_compare_priority, 0);
+  if (cur != idle_thread)
+    list_insert_ordered (&ready_list, &cur->elem, thread_compare_priority, 0); //list_push_back 바꾼 부분!
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
@@ -430,8 +490,8 @@ thread_yield (void)
 void
 thread_test_preemption(void)
 {
-   if (!list_empty (&ready_list) && 
-    thread_current ()->priority < 
+   if (!list_empty (&ready_list) &&
+    thread_current ()->priority <
     list_entry (list_front (&ready_list), struct thread, elem)->priority)
         thread_yield ();
 }
