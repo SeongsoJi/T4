@@ -258,7 +258,8 @@ thread_create (const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock (t);
-  thread_test_preemption ();
+   test_max_priority();
+  /* 생성된 스레드의 우선순위가 현재 실행중인 스레드의 우선순위보다 높다면, CPU를 양보한다. */
 //새로운 스레드가 생성되었을때 비교를 진행해야 하기에 수정이 필요하다.
   return tid;
 }
@@ -297,7 +298,7 @@ thread_unblock (struct thread *t)
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
   //list_push_back (&ready_list, &t->elem);
-  list_insert_ordered (&ready_list, &t->elem, thread_compare_priority, 0); /* 수정한 부분으로 순서대로가 아닌 우선순위에 맞게 삽입 될 수 있도록 함*/
+list_insert_ordered(&ready_list, &t->elem, cmp_priority, NULL);
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
@@ -374,7 +375,7 @@ thread_yield (void)
    // 새로운 elem을 리스트의 맨 뒤에 push 하는 함수
    // 원래 pintos 는 새로운 스레드를 ready_list 에 넣을 때 항상 맨 뒤에 넣음
    // thread_yield 함수에도 list_push_back 함수 존재
-  list_insert_ordered (&ready_list, &cur->elem, thread_compare_priority, 0);
+ list_insert_ordered(&ready_list, &curr->elem, cmp_priority, NULL);
    // thread_unblock()과 마찬가지로 우선순위에 맞게 구현할 수 있도록 수
   cur->status = THREAD_READY;
   schedule ();
@@ -403,7 +404,7 @@ void
 thread_set_priority (int new_priority) 
 {
   thread_current ()->priority = new_priority;
-  thread_test_preemption();
+  test_max_priority();
    // 우선순위 비교가 필요하기에 함수를 추가.
 }
 
@@ -648,24 +649,23 @@ allocate_tid (void)
   return tid;
 }
 
-bool
-thread_compare_priority (const struct list_elem*l,const struct list_elem *s, void *aux UNUSED)
-{
- return list_entry (l, struct thread, elem)->priority
- > list_entry (s, struct thread, elem)->priority;
+void test_max_priority(void) {
+	/* ready_list에서 우선순위가 가장 높은 스레드와
+	   현재 스레드의 우선순위를 비교하여 스케줄링 */
+	if (!list_empty(&ready_list)) {
+		struct thread *top_pri = list_begin(&ready_list);
+		if (cmp_priority(top_pri, &thread_current()->elem, NULL))
+		{
+			thread_yield();
+		}
+	}
 }
 
-void
-thread_test_preemption(void)
-{
-  if (!list_empty (&ready_list) &&
-   thread_current ()->priority <
-   list_entry (list_front (&ready_list), struct thread, elem)->priority)
-   thread_yield ();
+bool cmp_priority(const struct list_elem *a_, const struct list_elem *b_, void *aux UNUSED) {
+	struct thread *a = list_entry(a_, struct thread, elem)->priority;
+	struct thread *b = list_entry(b_, struct thread, elem)->priority;
+	return a > b;
 }
-//실행중인 스레드와 레디리스트안에 있는 천번째 스레드의 우선순위를 비교하는 함수
-
-
 
 /*  스레드의 우선순위 비교함수        */
 
