@@ -4,6 +4,9 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include "threads/synch.h"
+
 
 /* States in a thread's life cycle. */
 enum thread_status
