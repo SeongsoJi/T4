@@ -91,8 +91,12 @@ struct thread
     struct list_elem allelem;           /* List element for all threads list. */
     int64_t wakeup;                /* 깨어나야 할 ticks 값 */
     /* Shared between thread.c and synch.c. */
-    struct list_elem elem;              /* List element. */
+    struct list_elem elem;   /* List element. */
+    int init_priority /* 스레드가 priority를 양도 받았다가 다시 반납할 때 원래의 우선순위 값을 복원 할 수 있도록 고유의 priority를 저장 */
 
+    struct lock *wait_on_lock;
+    struct list_donations;
+    struct list_elem donation_elem;
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
