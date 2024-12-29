@@ -368,10 +368,3 @@ cond_broadcast (struct condition *cond, struct lock *lock)
 
 
 
-  sema_down (&lock->semaphore);
-  
-  cur->wait_on_lock = NULL;
-  lock->holder = cur;
-}
-
-
