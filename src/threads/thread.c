@@ -89,23 +89,24 @@ static tid_t allocate_tid (void);
     list_init(&t->donations);
 }*/
 
-static void init_thread(struct thread *t, const char *name, int priority) {
-	
-	
-	ASSERT(t != NULL);
-	ASSERT(PRI_MIN <= priority && priority <= PRI_MAX);
-	ASSERT(name != NULL);
+static void
+init_thread (struct thread *t, const char *name, int priority) {
+    ASSERT (t != NULL);
+    ASSERT (PRI_MIN <= priority && priority <= PRI_MAX);
+    ASSERT (name != NULL);
 
-	memset(t, 0, sizeof *t);
-	t->status = THREAD_BLOCKED;
-	t->priority = priority;
-	t->magic = THREAD_MAGIC;
-
-	/* Priority donation관련 자료구조 초기화 */
-	t->init_priority = priority;
-	t->wait_on_lock = NULL;
-	list_init(&t->donations);
+    memset (t, 0, sizeof *t);
+    t->status = THREAD_BLOCKED;
+    strlcpy (t->name, name, sizeof t->name);
+    t->tf.rsp = (uint64_t) t + PGSIZE - sizeof (void *);
+    t->priority = priority;
+    t->magic = THREAD_MAGIC;
+    // priority donation
+    t->init_priority = priority;
+    t->wait_on_lock = NULL;
+    list_init (&t->donations);
 }
+출처: https://d-cron.tistory.com/52?category=1014394 [D cron:티스토리]
 
 
 /* Initializes the threading system by transforming the code
