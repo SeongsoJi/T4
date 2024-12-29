@@ -224,6 +224,11 @@ lock_acquire (struct lock *lock)
     			thread_compare_donate_priority, 0);
     donate_priority ();
   }
+   sema_down (&lock->semaphore);
+   cur->wait_on_lock = NULL;
+  lock->holder = cur;
+
+}
 /* Tries to acquires LOCK and returns true if successful or false
    on failure.  The lock must not already be held by the current
    thread.
