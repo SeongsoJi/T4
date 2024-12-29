@@ -28,6 +28,8 @@ static struct list ready_list;
    when they are first scheduled and removed when they exit. */
 static struct list all_list;
 
+static struct list_sleep_list;
+
 /* Idle thread. */
 static struct thread *idle_thread;
 
@@ -92,6 +94,7 @@ thread_init (void)
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
+  list_init (&sleep_list);
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
@@ -578,6 +581,26 @@ allocate_tid (void)
 
   return tid;
 }
+
+void
+thread_sleep(int64_t ticks)
+{
+  struct thread *cur;
+  enum intr_level old_level;
+
+  old_level = intr_disable ();	// 인터럽트 off
+  cur = thread_current ();
+  
+  ASSERT (cur != idle_thread);
+
+  cur->wakeup = ticks;			// 일어날 시간을 저장
+  list_push_back (&sleep_list, &cur->elem);	// sleep_list 에 추가
+  thread_block ();				// block 상태로 변경
+
+  intr_set_level (old_level);	// 인터럽트 on
+}
+
+
 
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
