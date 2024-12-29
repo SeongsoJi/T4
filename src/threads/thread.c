@@ -649,7 +649,7 @@ allocate_tid (void)
 }
 
 bool
-thread_compare_priority (struct list_elem*l, struct list_elem *s, void *aux UNUSED)
+thread_compare_priority (const struct list_elem*l,const struct list_elem *s, void *aux UNUSED)
 {
  return list_entry (l, struct thread, elem)->priority
  > list_entry (s, struct thread, elem)->priority;
