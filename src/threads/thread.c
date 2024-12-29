@@ -356,7 +356,7 @@ void
 
 
 /* Returns the current thread's priority. */
-int thread_get_priority(void) {
+void thread_get_priority(void) {
     return thread_current()->priority;
 }
 
