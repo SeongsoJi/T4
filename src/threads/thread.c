@@ -355,7 +355,7 @@ thread_foreach (thread_action_func *func, void *aux)
 }
 
 /* Sets the current thread's priority to NEW_PRIORITY. */
-void
+
 
 
 /* Returns the current thread's priority. */
