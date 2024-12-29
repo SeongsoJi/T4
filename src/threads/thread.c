@@ -75,6 +75,21 @@ static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
+static void init_thread(struct thread *t, const char *name, int priority) {
+    ASSERT(t != NULL);
+    ASSERT(PRI_MIN <= priority && priority <= PRI_MAX);
+    ASSERT(name != NULL);
+
+    memset(t, 0, sizeof *t);
+    t->status = THREAD_BLOCKED;
+    strlcpy(t->name, name, sizeof t->name);
+    t->tf.esp = (uint32_t)t + PGSIZE - sizeof(void *); // 스택 포인터 설정
+    t->priority = priority;
+    t->init_priority = priority;  // 초기 우선순위 설정
+    t->wait_on_lock = NULL;
+    list_init(&t->donations);
+}
+
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
    general and it is possible in this case only because loader.S
@@ -454,26 +469,6 @@ is_thread (struct thread *t)
 /* Does basic initialization of T as a blocked thread named
    NAME. */
 
-static void
-init_thread (struct thread *t, const char *name, int priority)
-{
-  enum intr_level old_level;
-
-  ASSERT (t != NULL);
-  ASSERT (PRI_MIN <= priority && priority <= PRI_MAX);
-  ASSERT (name != NULL);
-
-  memset (t, 0, sizeof *t);
-  t->status = THREAD_BLOCKED;
-  strlcpy (t->name, name, sizeof t->name);
-  t->stack = (uint8_t *) t + PGSIZE;
-  t->priority = priority;
-  t->magic = THREAD_MAGIC;
-
-  old_level = intr_disable ();
-  list_push_back (&all_list, &t->allelem);
-  intr_set_level (old_level);
-}
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
    returns a pointer to the frame's base. */
