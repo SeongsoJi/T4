@@ -713,6 +713,15 @@ lock_release (struct lock *lock)
   lock->holder = NULL;
   sema_up (&lock->semaphore);
 }
+
+void
+thread_set_priority (int new_priority) 
+{
+  thread_current ()->init_priority = new_priority;
+  
+  refresh_priority ();
+  thread_test_preemption ();
+}
 
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
