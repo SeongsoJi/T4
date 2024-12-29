@@ -672,6 +672,19 @@ void thread_donate_priority(struct thread *t, int new_priority) {
     }
 }
 
+void thread_update_priority(void) {
+    struct thread *t = thread_current();
+    t->priority = t->base_priority;
+    // 추가적으로 기증된 우선순위 적용 (락 소유 시)
+    if (!list_empty(&t->donations)) {
+        struct thread *donor = list_entry(list_front(&t->donations), struct thread, donation_elem);
+        if (donor->priority > t->priority) {
+            t->priority = donor->priority;
+        }
+    }
+}
+
+
 
 /*  스레드의 우선순위 비교함수        */
 
