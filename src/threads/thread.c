@@ -66,19 +66,20 @@ static void kernel_thread (thread_func *, void *aux);
 static void idle (void *aux UNUSED);
 static struct thread *running_thread (void);
 static struct thread *next_thread_to_run (void);
-static void init_thread (struct thread *t, const char *name, int priority) {
-    ASSERT (t != NULL);
-    ASSERT (PRI_MIN <= priority && priority <= PRI_MAX);
-    ASSERT (name != NULL);
 
-    memset (t, 0, sizeof *t);               // 메모리 초기화
-    t->status = THREAD_BLOCKED;             // 스레드 초기 상태
-    strlcpy (t->name, name, sizeof t->name); // 스레드 이름 복사
+static void init_thread(struct thread *t, const char *name, int priority) {
+    ASSERT(t != NULL);
+    ASSERT(PRI_MIN <= priority && priority <= PRI_MAX);
+    ASSERT(name != NULL);
+
+    memset(t, 0, sizeof *t);               // 메모리 초기화
+    t->status = THREAD_BLOCKED;            // 초기 상태 설정
+    strlcpy(t->name, name, sizeof t->name);// 이름 복사
     t->tf.rsp = (uint64_t)t + PGSIZE - sizeof(void *); // 스택 포인터 설정
-
-    t->init_priority = priority;            // 초기 우선순위 설정
-    t->wait_on_lock = NULL;                 // 대기 중인 락 초기화
-    list_init(&t->donations);               // 기부 리스트 초기화
+    t->priority = priority;                // 현재 우선순위 설정
+    t->init_priority = priority;           // 초기 우선순위 설정
+    t->wait_on_lock = NULL;                // 대기 중인 락 초기화
+    list_init(&t->donations);              // donations 리스트 초기화
 }
 
 static bool is_thread (struct thread *) UNUSED;
