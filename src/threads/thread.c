@@ -163,6 +163,31 @@ thread_awake(int64_t ticks)
             e = list_next(e);
     }
 }
+
+// 함수 선언이 아니라 정의에서 세미콜론을 제거하고 함수 본문을 포함시켜야 합니다.
+bool 
+thread_compare_priority (const struct list_elem *l, const struct list_elem *s, void *aux UNUSED)
+{
+	return list_entry (l, struct thread, elem)->priority
+		 > list_entry (s, struct thread, elem)->priority;
+}
+
+bool
+thread_compare_donate_priority (const struct list_elem *l, const struct list_elem *s, void *auw UNUSED)
+{
+	return list_entry (l, struct thread, donation_elem)->priority
+		 > list_entry (s, struct thread, donation_elem)->priority;
+}
+
+void 
+thread_test_preemption (void)
+{
+	if (!list_empty (&ready_list) &&
+		thread_current ()->priority <
+		list_entry (list_front (&ready_list), struct thread, elem)->priority)
+		thread_yield ();
+}
+
 /* Starts preemptive thread scheduling by enabling interrupts.
    Also creates the idle thread. */
 void
@@ -362,16 +387,11 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_insert_ordered (&ready_list, &t->elem, thread_compare_priority, 0); //list_push_back을 바꾼 부분!
+  //list_push_back (&ready_list, &t->elem);
+  list_insert_ordered (&ready_list, &t->elem, thread_compare_priority, 0);
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
-
-// 함수 선언이 아니라 정의에서 세미콜론을 제거하고 함수 본문을 포함시켜야 합니다.
-bool thread_compare_priority (const struct list_elem *l, const struct list_elem *s, void *aux UNUSED) {
-   return list_entry(l, struct thread, elem)->priority > list_entry(s, struct thread, elem)->priority;
-}
-
 
 
 
