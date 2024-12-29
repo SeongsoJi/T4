@@ -75,17 +75,27 @@ static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
 
-static void init_thread(struct thread *t, const char *name, int priority) {
-    ASSERT(t != NULL);
-    ASSERT(PRI_MIN <= priority && priority <= PRI_MAX);
-    ASSERT(name != NULL);
+static void
+init_thread (struct thread *t, const char *name, int priority) {
+	ASSERT (t != NULL);
+	ASSERT (PRI_MIN <= priority && priority <= PRI_MAX);
+	ASSERT (name != NULL);
 
-    t->priority = priority;
-    t->init_priority = priority;  // 초기 우선순위 설정
-    t->wait_on_lock = NULL;
-    strlcpy(t->name, name, sizeof(t->name));
-    list_init(&t->donations);
+	memset (t, 0, sizeof *t);
+	t->status = THREAD_BLOCKED;
+	strlcpy (t->name, name, sizeof t->name);
+	t->tf.rsp = (uint64_t) t + PGSIZE - sizeof (void *);
+	t->priority = priority;
+	t->magic = THREAD_MAGIC;
+
+	/* --- Project 1.4 priority donation --- */
+	/* --- 자료구조 초기화 --- */
+	t->init_priority = priority;
+	t->wait_on_lock = NULL;
+	list_init(&t->donations);
+
 }
+출처: https://woonys.tistory.com/145 [WOONY's 인사이트:티스토리]
 
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
