@@ -106,7 +106,7 @@ init_thread (struct thread *t, const char *name, int priority) {
     t->wait_on_lock = NULL;
     list_init (&t->donations);
 }
-출처: https://d-cron.tistory.com/52?category=1014394 [D cron:티스토리]
+
 
 
 /* Initializes the threading system by transforming the code
