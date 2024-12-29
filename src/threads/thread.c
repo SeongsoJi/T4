@@ -665,6 +665,26 @@ thread_test_preemption(void)
 }
 //실행중인 스레드와 레디리스트안에 있는 천번째 스레드의 우선순위를 비교하는 함수
 
+void thread_donate_priority(struct thread *t, int new_priority) {
+    if (t->priority < new_priority) {
+        t->priority = new_priority;
+        thread_test_preemption(); // 스케줄링 확인
+    }
+}
+
+void lock_acquire(struct lock *lock) {
+    if (!lock_try_acquire(lock)) {
+        thread_donate_priority(lock->holder, thread_current()->priority);
+        thread_block();
+    }
+    lock->holder = thread_current();
+}
+void lock_release(struct lock *lock) {
+    lock->holder = NULL;
+    thread_update_priority(); // 우선순위 복구
+    thread_yield(); // 높은 우선순위 스레드에 CPU 양보
+}
+
 /*  스레드의 우선순위 비교함수        */
 
 /* Offset of `stack' member within `struct thread'.
