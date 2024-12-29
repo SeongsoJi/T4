@@ -6,7 +6,15 @@
    last element.  The `prev' link of the front header is null, as
    is the `next' link of the back header.  Their other two links
    point toward each other via the interior elements of the list.
+   
+우리의 양방향 연결 리스트는 두 개의 헤더 요소를 가지고 있습니다:
+첫 번째 요소 바로 앞에 있는 **"head"**와 마지막 요소 바로 뒤에 있는 **"tail"**입니다.
 
+head의 prev 링크는 null입니다. (리스트의 맨 앞을 나타냄)
+tail의 next 링크도 null입니다. (리스트의 맨 뒤를 나타냄)
+이 두 헤더 요소의 다른 두 링크는 리스트의 내부 요소를 통해 서로를 가리킵니다.
+즉,
+head와 tail은 리스트의 시작과 끝을 표시하는 특별한 노드이며, 리스트의 나머지 요소들을 연결하는 구조를 유지합니다.
    An empty list looks like this:
 
                       +------+     +------+
@@ -29,7 +37,15 @@
    we could in fact combine them into a single header element
    without sacrificing this simplicity.  But using two separate
    elements allows us to do a little bit of checking on some
-   operations, which can be valuable.) */
+   operations, which can be valuable.) 
+   
+   
+이 구조의 대칭성은 리스트 처리에서 많은 특수한 경우를 제거해 줍니다.
+예를 들어, list_remove()를 보면, 조건문 없이 단 두 번의 포인터 할당만으로 동작합니다.
+헤더 요소가 없는 경우의 코드보다 훨씬 간단합니다.
+
+(사실, 각 헤더 요소에서 사용되는 포인터는 하나뿐이므로, 두 헤더 요소를 하나로 합쳐도 이 간단함을 유지할 수 있습니다.
+하지만 두 개의 별도 요소를 사용하면 일부 연산에서 추가적인 검증을 수행할 수 있어, 이는 유용할 수 있습니다.)*/
 
 static bool is_sorted (struct list_elem *a, struct list_elem *b,
                        list_less_func *less, void *aux) UNUSED;
