@@ -230,35 +230,11 @@ thread_create (const char *name, int priority,
   struct switch_threads_frame *sf;
   tid_t tid;
 
-  ASSERT (function != NULL);
-
-  /* Allocate thread. */
-  t = palloc_get_page (PAL_ZERO);
-  if (t == NULL)
-    return TID_ERROR;
-
-  /* Initialize thread. */
-  init_thread (t, name, priority);
-  tid = t->tid = allocate_tid ();
-
-  /* Stack frame for kernel_thread(). */
-  kf = alloc_frame (t, sizeof *kf);
-  kf->eip = NULL;
-  kf->function = function;
-  kf->aux = aux;
-
-  /* Stack frame for switch_entry(). */
-  ef = alloc_frame (t, sizeof *ef);
-  ef->eip = (void (*) (void)) kernel_thread;
-
-  /* Stack frame for switch_threads(). */
-  sf = alloc_frame (t, sizeof *sf);
-  sf->eip = switch_entry;
-  sf->ebp = 0;
-
-  /* Add to run queue. */
   thread_unblock (t);
-   test_max_priority();
+  if (cmp_priority(&t->elem, &curr->elem, NULL)) {
+		thread_yield();
+	}
+출처: https://woonys.tistory.com/143 [WOONY's 인사이트:티스토리]
   /* 생성된 스레드의 우선순위가 현재 실행중인 스레드의 우선순위보다 높다면, CPU를 양보한다. */
 //새로운 스레드가 생성되었을때 비교를 진행해야 하기에 수정이 필요하다.
   return tid;
@@ -298,7 +274,8 @@ thread_unblock (struct thread *t)
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
   //list_push_back (&ready_list, &t->elem);
-list_insert_ordered(&ready_list, &t->elem, cmp_priority, NULL);
+  list_insert_ordered(&ready_list, &t->elem, &cmp_priority, NULL);
+	
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
@@ -375,7 +352,7 @@ thread_yield (void)
    // 새로운 elem을 리스트의 맨 뒤에 push 하는 함수
    // 원래 pintos 는 새로운 스레드를 ready_list 에 넣을 때 항상 맨 뒤에 넣음
    // thread_yield 함수에도 list_push_back 함수 존재
- list_insert_ordered(&ready_list, &curr->elem, cmp_priority, NULL);
+ 	list_insert_ordered(&ready_list, &curr->elem, cmp_priority, NULL);
    // thread_unblock()과 마찬가지로 우선순위에 맞게 구현할 수 있도록 수
   cur->status = THREAD_READY;
   schedule ();
@@ -649,23 +626,31 @@ allocate_tid (void)
   return tid;
 }
 
-void test_max_priority(void) {
-	/* ready_list에서 우선순위가 가장 높은 스레드와
-	   현재 스레드의 우선순위를 비교하여 스케줄링 */
-	if (!list_empty(&ready_list)) {
-		struct thread *top_pri = list_begin(&ready_list);
-		if (cmp_priority(top_pri, &thread_current()->elem, NULL))
-		{
-			thread_yield();
-		}
+void test_max_priority (void){
+	if (list_empty(&ready_list)) {
+		return;
+	}
+
+	int run_priority = thread_current()->priority;
+	struct list_elem *e = list_begin(&ready_list);
+	struct thread *t = list_entry(e, struct thread, elem);
+
+	if (t->priority > run_priority) {
+		thread_yield();
 	}
 }
+출처: https://woonys.tistory.com/143 [WOONY's 인사이트:티스토리]
 
-bool cmp_priority(const struct list_elem *a_, const struct list_elem *b_, void *aux UNUSED) {
-	struct thread *a = list_entry(a_, struct thread, elem)->priority;
-	struct thread *b = list_entry(b_, struct thread, elem)->priority;
-	return a > b;
+bool cmp_priority (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED) 
+{
+	struct thread* t_a; 
+	struct thread* t_b;
+
+	t_a = list_entry(a, struct thread, elem);
+	t_b = list_entry(b, struct thread, elem);
+	return ((t_a->priority) > (t_b->priority)) ? true : false;
 }
+출처: https://woonys.tistory.com/143 [WOONY's 인사이트:티스토리]
 
 /*  스레드의 우선순위 비교함수        */
 
