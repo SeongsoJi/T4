@@ -142,4 +142,9 @@ void thread_sleep(int64_t ticks);
 void thread_awake(int64_t ticks);
 //새롭게 sleep,awake 함수를 추가하였으므로 thread.h에 프로토타입을 선언해주어야함.
 
+//void update_next_tick_to_awake(int64_t ticks);
+//int64_t get_next_tick_to_awake(void);
+bool thread_compare_priority(struct list_elem *l, struct list_elem *s, void *aux);
+void thread_test_preemption(void);
+
 #endif /* threads/thread.h */
