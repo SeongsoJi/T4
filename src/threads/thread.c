@@ -4,6 +4,7 @@
 #include <random.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 #include "threads/flags.h"
 #include "threads/interrupt.h"
 #include "threads/intr-stubs.h"
@@ -18,8 +19,8 @@
 /* Random value for struct thread's `magic' member.
    Used to detect stack overflow.  See the big comment at the top
    of thread.h for details. */
-#define THREAD_MAGIC 0xcd6abf4b
 
+#define THREAD_MAGIC 0xcd6abf4b
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
 static struct list ready_list;
@@ -62,7 +63,6 @@ static unsigned thread_ticks;   /* # of timer ticks since last yield. */
 bool thread_mlfqs;
 
 static void kernel_thread (thread_func *, void *aux);
-
 static void idle (void *aux UNUSED);
 static struct thread *running_thread (void);
 static struct thread *next_thread_to_run (void);
@@ -90,22 +90,23 @@ static tid_t allocate_tid (void);
 }*/
 
 static void init_thread(struct thread *t, const char *name, int priority) {
-    enum intr_level old_level;
+	
+	
+	ASSERT(t != NULL);
+	ASSERT(PRI_MIN <= priority && priority <= PRI_MAX);
+	ASSERT(name != NULL);
 
-    ASSERT(t != NULL);
-    ASSERT(PRI_MIN <= priority && priority <= PRI_MAX);
-    ASSERT(name != NULL);
+	memset(t, 0, sizeof *t);
+	t->status = THREAD_BLOCKED;
+	strlcpy(t->name, name, sizeof t->name);
+	t->tf.rsp = (uint64_t)t + PGSIZE - sizeof(void *);
+	t->priority = priority;
+	t->magic = THREAD_MAGIC;
 
-    memset(t, 0, sizeof *t);
-    t->status = THREAD_BLOCKED;
-    strlcpy(t->name, name, sizeof t->name);
-    t->stack = (uint8_t *)t + PGSIZE;
-    t->priority = priority;
-    t->magic = THREAD_MAGIC;
-
-    old_level = intr_disable();
-    list_push_back(&all_list, &t->allelem);
-    intr_set_level(old_level);
+	/* Priority donation관련 자료구조 초기화 */
+	t->init_priority = priority;
+	t->wait_on_lock = NULL;
+	list_init(&t->donations);
 }
 
 
