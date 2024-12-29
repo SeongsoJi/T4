@@ -95,6 +95,7 @@ struct thread
     struct lock *wait_on_lock;
     struct list donations;
     struct list_elem donation_elem;
+    struct intr_frame tf;
     
 
     /* Shared between thread.c and synch.c. */
