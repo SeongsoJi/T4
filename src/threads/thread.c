@@ -83,6 +83,7 @@ static void init_thread(struct thread *t, const char *name, int priority) {
     t->priority = priority;
     t->init_priority = priority;  // 초기 우선순위 설정
     t->wait_on_lock = NULL;
+    strlcpy(t->name, name, sizeof(t->name));
     list_init(&t->donations);
 }
 
