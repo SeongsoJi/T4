@@ -41,6 +41,19 @@
 
    - up or "V": increment the value (and wake up one waiting
      thread, if any). */
+bool 
+sema_compare_priority (const struct list_elem *l, const struct list_elem *s, void *aux UNUSED)
+{
+	struct semaphore_elem *l_sema = list_entry (l, struct semaphore_elem, elem);
+	struct semaphore_elem *s_sema = list_entry (s, struct semaphore_elem, elem);
+
+	struct list *waiter_l_sema = &(l_sema->semaphore.waiters);
+	struct list *waiter_s_sema = &(s_sema->semaphore.waiters);
+
+	return list_entry (list_begin (waiter_l_sema), struct thread, elem)->priority
+		 > list_entry (list_begin (waiter_s_sema), struct thread, elem)->priority;
+}
+
 void
 sema_init (struct semaphore *sema, unsigned value) 
 {
@@ -345,15 +358,4 @@ cond_broadcast (struct condition *cond, struct lock *lock)
   while (!list_empty (&cond->waiters))
     cond_signal (cond, lock);
 }
-bool 
-sema_compare_priority (const struct list_elem *l, const struct list_elem *s, void *aux UNUSED)
-{
-	struct semaphore_elem *l_sema = list_entry (l, struct semaphore_elem, elem);
-	struct semaphore_elem *s_sema = list_entry (s, struct semaphore_elem, elem);
 
-	struct list *waiter_l_sema = &(l_sema->semaphore.waiters);
-	struct list *waiter_s_sema = &(s_sema->semaphore.waiters);
-
-	return list_entry (list_begin (waiter_l_sema), struct thread, elem)->priority
-		 > list_entry (list_begin (waiter_s_sema), struct thread, elem)->priority;
-}
