@@ -77,7 +77,7 @@ static tid_t allocate_tid (void);
 
 
 
-static void init_thread(struct thread *t, const char *name, int priority) {
+/*static void init_thread(struct thread *t, const char *name, int priority) {
     ASSERT(t != NULL);
     ASSERT(PRI_MIN <= priority && priority <= PRI_MAX);
     ASSERT(name != NULL);
@@ -87,6 +87,25 @@ static void init_thread(struct thread *t, const char *name, int priority) {
     t->wait_on_lock = NULL;
     strlcpy(t->name, name, sizeof(t->name));
     list_init(&t->donations);
+}*/
+
+static void init_thread(struct thread *t, const char *name, int priority) {
+    enum intr_level old_level;
+
+    ASSERT(t != NULL);
+    ASSERT(PRI_MIN <= priority && priority <= PRI_MAX);
+    ASSERT(name != NULL);
+
+    memset(t, 0, sizeof *t);
+    t->status = THREAD_BLOCKED;
+    strlcpy(t->name, name, sizeof t->name);
+    t->stack = (uint8_t *)t + PGSIZE;
+    t->priority = priority;
+    t->magic = THREAD_MAGIC;
+
+    old_level = intr_disable();
+    list_push_back(&all_list, &t->allelem);
+    intr_set_level(old_level);
 }
 
 
@@ -103,7 +122,7 @@ static void init_thread(struct thread *t, const char *name, int priority) {
 
    It is not safe to call thread_current() until this function
    finishes. */
-void
+/void
 thread_init (void) 
 {
   ASSERT (intr_get_level () == INTR_OFF);
