@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include "threads/interrupt.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -93,6 +94,7 @@ struct thread
     struct lock *wait_on_lock;
     struct list donations;
     struct list_elem donation_elem;
+    struct intr_frame tf
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;  /* List element. */
@@ -150,7 +152,7 @@ void thread_awake(int64_t ticks);
 
 void thread_test_preemption (void);
 
-bool thread_compare_priority(struct list_elem *, struct list_elem *, void *aux UNUSED);
+bool thread_compare_priority(const struct list_elem *,const struct list_elem *, void *aux UNUSED);
 bool thread_compare_donate_priority(const struct list_elem *, const struct list_elem *, void *aux);
 void donate_priority(void);
 void refresh_priority(void);
