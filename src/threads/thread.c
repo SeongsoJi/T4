@@ -600,6 +600,22 @@ thread_sleep(int64_t ticks)
   intr_set_level (old_level);	// 인터럽트 on
 }
 
+void
+thread_awake (int64_t ticks)
+{
+  struct list_elem *e = list_begin (&sleep_list);
+
+  while (e != list_end (&sleep_list)){
+    struct thread *t = list_entry (e, struct thread, elem);
+    if (t->wakeup <= ticks){	// 스레드가 일어날 시간이 되었는지 확인
+      e = list_remove (e);	// sleep list 에서 제거
+      thread_unblock (t);	// 스레드 unblock
+    }
+    else 
+      e = list_next (e);
+  }
+}
+
 
 
 /* Offset of `stack' member within `struct thread'.
