@@ -147,7 +147,7 @@ int thread_get_load_avg (void);
 void thread_sleep(int64_t ticks);
 void thread_awake(int64_t ticks);
 
-bool thread_compare_priority (struct list_elem *l, struct list_elem *s, void *aux UNUSED);
+
 void thread_test_preemption (void);
 
 bool thread_compare_priority(const struct list_elem *, const struct list_elem *, void *aux UNUSED);
