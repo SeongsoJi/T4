@@ -5,7 +5,7 @@
 #include <list.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "lib/kernel/intr-stubs.h"
+
 
 
 /* States in a thread's life cycle. */
@@ -83,35 +83,35 @@ typedef int tid_t;
    only because they are mutually exclusive: only a thread in the
    ready state is on the run queue, whereas only a thread in the
    blocked state is on a semaphore wait list. */
-struct thread
-  {
+struct thread {
     /* Owned by thread.c. */
     tid_t tid;                          /* Thread identifier. */
     enum thread_status status;          /* Thread state. */
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
-    int priority;/* Priority. */
-    int init_priority;
-    struct list_elem allelem;/* List element for all threads list. */
-    struct lock *wait_on_lock;
-    struct list donations;
-    struct list_elem donation_elem;
-    struct intr_frame tf;
-    
+    int priority;                       /* Priority. */
+    int init_priority;                  /* Initial priority. */
+    struct list_elem allelem;           /* List element for all threads list. */
+    struct lock *wait_on_lock;          /* Lock this thread is waiting on. */
+    struct list donations;              /* List of donated priorities. */
+    struct list_elem donation_elem;     /* List element for priority donations. */
+
+    /* Replacing 'struct intr_frame tf' */
+    uint32_t *esp;                      /* Saved stack pointer for context switching. */
+    uint32_t eip;                       /* Saved instruction pointer. */
+    uint32_t eflags;                    /* Saved CPU flags. */
 
     /* Shared between thread.c and synch.c. */
-    struct list_elem elem;  /* List element. */
+    struct list_elem elem;              /* List element. */
 
-    int64_t wakeup;//깨어나야하는 ticks 값
-
+    int64_t wakeup;                     /* Ticks value for wakeup. */
 
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
 
-
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
-  };
+};
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
