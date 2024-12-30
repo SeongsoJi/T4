@@ -5,6 +5,7 @@
 #include <list.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "lib/kernel/intr-stubs.h"
 
 
 /* States in a thread's life cycle. */
