@@ -7,7 +7,6 @@
 #include <stdarg.h>
 #include "threads/flags.h"
 #include "threads/interrupt.h"
-//#include "threads/intr-stubs.h"
 #include "threads/palloc.h"
 #include "threads/switch.h"
 #include "threads/synch.h"
@@ -100,7 +99,8 @@ init_thread (struct thread *t, const char *name, int priority) {
     strlcpy (t->name, name, sizeof t->name);
 
     // 스택 포인터 초기화
-    t->esp = (uint8_t *)t + PGSIZE;
+    t->esp = (uint32_t *)((uint8_t *)t + PGSIZE);
+
 
     t->priority = priority;
     t->magic = THREAD_MAGIC;
