@@ -98,14 +98,23 @@ init_thread (struct thread *t, const char *name, int priority) {
     memset (t, 0, sizeof *t);
     t->status = THREAD_BLOCKED;
     strlcpy (t->name, name, sizeof t->name);
-    t->tf.esp = (uint32_t)t + PGSIZE - sizeof(void *);
+
+    // 스택 포인터 초기화
+    t->esp = (uint8_t *)t + PGSIZE;
+
     t->priority = priority;
     t->magic = THREAD_MAGIC;
-    // priority donation
+
+    // Priority donation 관련 필드 초기화
     t->init_priority = priority;
     t->wait_on_lock = NULL;
     list_init (&t->donations);
+
+    // 추가 CPU 상태 초기화
+    t->eip = 0;           // 초기 명령어 포인터 설정
+    t->eflags = 0x202;    // 기본 CPU 플래그 (Interrupt Enable)
 }
+
 
 
 
